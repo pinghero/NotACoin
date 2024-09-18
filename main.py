@@ -1,6 +1,9 @@
 from p2pnetwork.node import Node
 import json
 import time
+import pdb
+from pow import calculate_hash
+from dataclasses import dataclass
 
 
 class p2p_node(Node):
@@ -8,41 +11,73 @@ class p2p_node(Node):
 
         super(p2p_node, self).__init__(
             host, port, id, callback, max_connections)
-        self.peers_list = []
+        self.peers_list = self.get_peers_list()
 
-    def outbound_node_connected(self, connected_node):
-        print("outbound_node_connected: " + connected_node.id)
+        # Debug flag - default False
+        # self.debug = True
+
+    def outbound_node_connected(self, node):
+        print("outbound_node_connected: " + node.id)
 
     def connect_to_peers(self):
 
-        peers_list = self.get_peers_list()
-        # for peer in peers_list:
-        self.connect_with_node(peers_list['host'], peers_list['port'])
+        for peer in self.peers_list['peers']:
+            return self.connect_with_node(peer['host'], peer['port'])
 
     def get_peers_list(self, peers_list: list = []):
 
-        # Reading peer from file for testing
+        # Reading peer from file for testing:
         with open('peers.json', 'r') as peers:
             return json.load(peers)
 
     def node_message(self, node, data):
         print("node_message from " + node.id + ": " + str(data))
 
+    @dataclass
+    class Block:
+        header: str
+        txs: str
+        tx_count: int
+        target: str
+        nonce: int
 
-# testing p2p network
+    @dataclass
+    class Header:
+        prev_block: str
+        merkle_root: str
+        timestamp: str
+        target: str
+        nonce: int
+
+    @dataclass
+    class Transaction:
+        input_count: int
+        inputs: list
+        output_count: str
+        outputs: list
+
+
 if __name__ == '__main__':
 
-    node1 = p2p_node('127.0.0.1', 10001)
-    node2 = p2p_node('127.0.0.1', 10002)
+    string = 'some data'
 
-    node1.start()
-    time.sleep(1)
+    hash = calculate_hash(string)
 
-    node2.start()
-    time.sleep(1)
+    print(hash)
 
-    peers_list = node1.get_peers_list()
-    node1.connect_with_node(peers_list['host'], int(peers_list['port']))
+    # node1 = p2p_node('127.0.0.1', 10001)
+    # node2 = p2p_node('127.0.0.1', 10002)
 
-    # node1.connect_to_peers()
-    node1.send_to_nodes({"message": "hello"})
+    # node1.start()
+    # time.sleep(1)
+
+    # node2.start()
+    # time.sleep(1)
+
+    # print(node1.connect_to_peers())
+    # time.sleep(1)
+
+    # node1.send_to_nodes({"message": "message from node 1"})
+    # time.sleep(1)
+
+    # node2.send_to_nodes({"message": "message from node 2"})
